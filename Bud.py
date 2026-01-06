@@ -7,11 +7,9 @@ st.set_page_config(
     layout="wide"
 )
 
-# ---------------- TITLE ----------------
 st.title("🇮🇳 Union Budget of India – Live Budget Explorer")
 st.markdown(
-    "This dashboard provides year-wise and theme-wise budget allocation details. "
-    "Data is sourced from official budget documents and structured for analysis."
+    "Interactive viewer for India’s Union Budget with year-wise and theme-wise analysis."
 )
 
 st.divider()
@@ -23,6 +21,43 @@ def load_data():
 
 df = load_data()
 
+# ---------------- ADD THEME LOGIC ----------------
+def assign_theme(sub_theme):
+    if sub_theme in [
+        "Agri & Farmers Welfare", "Agricultural Research",
+        "Crop Insurance", "Irrigation"
+    ]:
+        return "Agriculture"
+
+    elif sub_theme in [
+        "Defence Revenue", "Defence Capital",
+        "Defence Pension", "Border Roads"
+    ]:
+        return "Defence"
+
+    elif sub_theme in [
+        "School Education", "Higher Education",
+        "Mid Day Meal", "Skill Development"
+    ]:
+        return "Education"
+
+    elif sub_theme in [
+        "Health & Family Welfare", "Health Research",
+        "Ayush", "Medical Education"
+    ]:
+        return "Health"
+
+    elif sub_theme in [
+        "Road Transport", "Railways",
+        "Urban Development", "Housing", "Water Resources"
+    ]:
+        return "Infrastructure"
+
+    else:
+        return "Others"
+
+df["Theme"] = df["Sub-Theme"].apply(assign_theme)
+
 # ---------------- SIDEBAR FILTERS ----------------
 st.sidebar.header("🔎 Filters")
 
@@ -33,7 +68,7 @@ year = st.sidebar.selectbox(
 
 theme = st.sidebar.selectbox(
     "Select Theme",
-    sorted(df["Theme"].dropna().unique())
+    ["Agriculture", "Defence", "Education", "Health", "Infrastructure"]
 )
 
 # ---------------- FILTER DATA ----------------
@@ -43,7 +78,7 @@ filtered_df = df[
 ]
 
 # ---------------- SUMMARY ----------------
-total_budget = filtered_df["Total Allocation"].sum()
+total_budget = filtered_df["Sub Allocation"].sum()
 
 st.subheader(f"📊 {theme} Budget – {year}")
 st.metric(
@@ -52,14 +87,14 @@ st.metric(
 )
 
 # ---------------- TABLE ----------------
-st.subheader("📄 Detailed Sub-Allocations")
+st.subheader("📄 Sub-Theme Allocation Details")
 st.dataframe(
     filtered_df[["Sub-Theme", "Sub Allocation"]],
     use_container_width=True
 )
 
 # ---------------- BAR CHART ----------------
-st.subheader("📈 Sub-Theme Allocation Comparison")
+st.subheader("📈 Allocation by Sub-Theme")
 
 chart_df = (
     filtered_df
@@ -75,6 +110,5 @@ st.bar_chart(
 # ---------------- FOOTER ----------------
 st.divider()
 st.caption(
-    "🔗 This page is designed to be accessed via Tableau dashboard navigation. "
-    "Clicking the image in Tableau opens this live budget explorer."
+    "🔗 This live budget explorer is connected via Tableau dashboard navigation."
 )

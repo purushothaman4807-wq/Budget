@@ -29,7 +29,7 @@ year = st.sidebar.selectbox(
 
 theme = st.sidebar.selectbox(
     "Select Theme",
-    ["Agriculture", "Defence", "Health", "Education", "Infrastructure"]
+    ["All", "Agriculture", "Defence", "Health", "Education", "Infrastructure"]
 )
 
 # ---------------- THEME CONFIG ----------------
@@ -56,31 +56,61 @@ theme_config = {
     }
 }
 
-ta_col = theme_config[theme]["ta"]
-sub_cols = theme_config[theme]["subs"]
-
-# ---------------- FILTER DATA ----------------
 year_df = df[df["Year"] == year]
 
-# ---------------- METRIC ----------------
-total_allocation = year_df[ta_col].values[0]
+# ================= ALL THEMES =================
+if theme == "All":
+    st.subheader(f"📊 Overall Budget Summary – {year}")
 
-st.subheader(f"📊 {theme} Budget – {year}")
-st.metric("Total Allocation (₹ Crore)", f"{total_allocation:,.0f}")
+    total_budget = 0
+    summary_rows = []
 
-# ---------------- SUB ALLOCATION TABLE ----------------
-sub_df = year_df[sub_cols].T.reset_index()
-sub_df.columns = ["Sub-Theme", "Allocation"]
+    for t, cfg in theme_config.items():
+        ta_value = year_df[cfg["ta"]].values[0]
+        total_budget += ta_value
+        summary_rows.append([t, ta_value])
 
-st.subheader("📄 Sub-Theme Allocation Details")
-st.dataframe(sub_df, use_container_width=True)
+    summary_df = pd.DataFrame(
+        summary_rows,
+        columns=["Theme", "Total Allocation"]
+    )
 
-# ---------------- BAR CHART ----------------
-st.subheader("📈 Sub-Theme Allocation Comparison")
-st.bar_chart(sub_df.set_index("Sub-Theme"))
+    st.metric(
+        "Total Union Budget (₹ Crore)",
+        f"{total_budget:,.0f}"
+    )
+
+    st.subheader("📈 Theme-wise Allocation")
+    st.bar_chart(summary_df.set_index("Theme"))
+
+    st.subheader("📄 Theme-wise Allocation Table")
+    st.dataframe(summary_df, use_container_width=True)
+
+# ================= SINGLE THEME =================
+else:
+    cfg = theme_config[theme]
+    ta_col = cfg["ta"]
+    sub_cols = cfg["subs"]
+
+    total_allocation = year_df[ta_col].values[0]
+
+    st.subheader(f"📊 {theme} Budget – {year}")
+    st.metric(
+        "Total Allocation (₹ Crore)",
+        f"{total_allocation:,.0f}"
+    )
+
+    sub_df = year_df[sub_cols].T.reset_index()
+    sub_df.columns = ["Sub-Theme", "Allocation"]
+
+    st.subheader("📄 Sub-Theme Allocation Details")
+    st.dataframe(sub_df, use_container_width=True)
+
+    st.subheader("📈 Sub-Theme Allocation Comparison")
+    st.bar_chart(sub_df.set_index("Sub-Theme"))
 
 # ---------------- FOOTER ----------------
 st.divider()
 st.caption(
-    "Python-powered live budget explorer | Linked via Tableau dashboard image"
+    "Python-powered live budget explorer | Connected via Tableau dashboard navigation"
 )
